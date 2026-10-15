@@ -1,3 +1,5 @@
 """Generate ASC CDL color decisions from paired reference images."""
 
-__version__ = "0.1.0"
+from importlib.metadata import version
+
+__version__ = version("cdl-gen")

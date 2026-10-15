@@ -29,17 +29,27 @@ SOP directly against the final target would be biased. The tool instead:
 
 ## Installation
 
+This project is managed with [uv](https://docs.astral.sh/uv/).
+
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+uv sync
+```
+
+This creates `.venv` with the pinned Python version and the locked
+dependencies from `uv.lock`. To install the `cdl-gen` command globally
+instead:
+
+```bash
+uv tool install .
 ```
 
 ## Usage
 
 ```bash
-python -m cdl_gen source.png target.png -o output.cc
+uv run cdl-gen source.png target.png -o output.cc
 ```
+
+(`uv run python -m cdl_gen ...` also works.)
 
 Arguments:
 
@@ -69,7 +79,11 @@ Example output (`.cc`):
 ## Development
 
 ```bash
-pip install -r requirements-dev.txt
-pytest
+uv sync          # installs the dev dependency group (pytest) by default
+uv run pytest
+uv build         # builds sdist and wheel into dist/
 ```
+
+Add dependencies with `uv add <pkg>` (or `uv add --dev <pkg>`) so
+`pyproject.toml` and `uv.lock` stay in sync.
 
