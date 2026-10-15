@@ -76,6 +76,35 @@ Example output (`.cc`):
 </ColorCorrection>
 ```
 
+## Supported file formats
+
+### Input images
+
+Images are read with [Pillow](https://pillow.readthedocs.io/), so any format
+Pillow can open is accepted — commonly PNG, JPEG, TIFF, BMP, WebP, TGA and
+PPM. Alpha channels are discarded and grayscale images are expanded to RGB.
+
+| Input | Support |
+| --- | --- |
+| 8-bit RGB / RGBA (PNG, JPEG, TIFF, …) | Fully supported |
+| 16-bit grayscale | Supported (scaled from 0–65535) |
+| 16-bit-per-channel RGB (PNG, TIFF) | Loaded at 8-bit precision — Pillow has no 16-bit RGB mode |
+| 32-bit float (`F` mode TIFF) | Converted to 8-bit RGB before fitting |
+| 32-bit integer grayscale | Not reliable — values are mis-scaled |
+| OpenEXR, DPX, camera raw | Not supported |
+
+For best results, use 8-bit RGB images that are pixel-aligned and in the same
+color space.
+
+### Output
+
+| Extension | Written as |
+| --- | --- |
+| `.cdl` | Color Decision List (XML) |
+| anything else (typically `.cc`) | Standalone ColorCorrection (XML) |
+
+ColorCorrectionCollection (`.ccc`) files are not currently written.
+
 ## Development
 
 ```bash
