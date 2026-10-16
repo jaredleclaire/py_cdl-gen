@@ -5,6 +5,8 @@ Both images must be pixel-aligned and depict the same content.
 """
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
 from scipy.optimize import curve_fit
 
@@ -110,6 +112,7 @@ def fit_cdl(
     max_samples: int = 200_000,
     seed: int = 0,
     iterations: int = 8,
+    on_iteration: Callable[[int, float], None] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
     """Jointly recover Slope/Offset/Power/Saturation mapping `source` to `target`.
 
@@ -118,16 +121,21 @@ def fit_cdl(
     which biases a naive per-channel SOP fit. This alternates between
     desaturating the target with the current Sat estimate (fitting SOP against
     that), then re-fitting Sat from the new SOP output, until it converges.
+
+    If given, `on_iteration(i, saturation)` is called after each pass
+    (1-based `i`) so callers can report progress.
     """
     saturation = 1.0
     slope = np.ones(3)
     offset = np.zeros(3)
     power = np.ones(3)
 
-    for _ in range(iterations):
+    for i in range(1, iterations + 1):
         desaturated_target = invert_saturation(target, saturation)
         slope, offset, power = fit_sop(source, desaturated_target, max_samples=max_samples, seed=seed)
         sop_output = apply_sop(source, slope, offset, power)
         saturation = fit_saturation(sop_output, target)
+        if on_iteration is not None:
+            on_iteration(i, saturation)
 
     return slope, offset, power, saturation

@@ -5,6 +5,8 @@ import argparse
 import sys
 from pathlib import Path
 
+from alive_progress import alive_bar
+
 from .cdl_writer import write_cc, write_cdl
 from .fitting import fit_cdl
 from .io_utils import load_image
@@ -36,10 +38,23 @@ def main(argv: list[str] | None = None) -> int:
         "--iterations", type=int, default=8,
         help="Number of SOP/Saturation refinement passes (default: 8)",
     )
+    parser.add_argument(
+        "--no-progress", action="store_true",
+        help="Disable progress bars",
+    )
     args = parser.parse_args(argv)
 
-    source = load_image(args.source)
-    target = load_image(args.target)
+    bar_opts = dict(
+        file=sys.stderr, disable=args.no_progress, enrich_print=False, title_length=14,
+    )
+
+    with alive_bar(2, title="Loading images", **bar_opts) as bar:
+        bar.text = Path(args.source).name
+        source = load_image(args.source)
+        bar()
+        bar.text = Path(args.target).name
+        target = load_image(args.target)
+        bar()
 
     if source.shape != target.shape:
         print(
@@ -49,9 +64,15 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    slope, offset, power, saturation = fit_cdl(
-        source, target, max_samples=args.max_samples, iterations=args.iterations
-    )
+    with alive_bar(args.iterations, title="Fitting CDL", **bar_opts) as bar:
+        def on_iteration(i: int, sat: float) -> None:
+            bar.text = f"saturation {sat:.4f}"
+            bar()
+
+        slope, offset, power, saturation = fit_cdl(
+            source, target, max_samples=args.max_samples,
+            iterations=args.iterations, on_iteration=on_iteration,
+        )
 
     out_path = Path(args.output)
     if out_path.suffix.lower() == ".cdl":

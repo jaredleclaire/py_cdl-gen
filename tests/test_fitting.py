@@ -67,3 +67,17 @@ def test_fit_cdl_recovers_combined_sop_and_saturation():
     assert np.allclose(power, true_power, atol=1e-2)
     assert abs(sat - true_sat) < 1e-2
 
+
+
+def test_fit_cdl_reports_each_iteration():
+    source = _make_source_image()
+    target = apply_saturation(source, 0.8)
+    calls = []
+
+    _, _, _, sat = fit_cdl(
+        source, target, max_samples=1024, iterations=5,
+        on_iteration=lambda i, s: calls.append((i, s)),
+    )
+
+    assert [i for i, _ in calls] == [1, 2, 3, 4, 5]
+    assert calls[-1][1] == sat
