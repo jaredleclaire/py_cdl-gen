@@ -80,21 +80,26 @@ Example output (`.cc`):
 
 ### Input images
 
-Images are read with [Pillow](https://pillow.readthedocs.io/), so any format
-Pillow can open is accepted — commonly PNG, JPEG, TIFF, BMP, WebP, TGA and
-PPM. Alpha channels are discarded and grayscale images are expanded to RGB.
+Images are read with [OpenImageIO](https://openimageio.org/), at full bit
+depth. Alpha channels are discarded and grayscale images are expanded to RGB.
 
 | Input | Support |
 | --- | --- |
-| 8-bit RGB / RGBA (PNG, JPEG, TIFF, …) | Fully supported |
-| 16-bit grayscale | Supported (scaled from 0–65535) |
-| 16-bit-per-channel RGB (PNG, TIFF) | Loaded at 8-bit precision — Pillow has no 16-bit RGB mode |
-| 32-bit float (`F` mode TIFF) | Converted to 8-bit RGB before fitting |
-| 32-bit integer grayscale | Not reliable — values are mis-scaled |
-| OpenEXR, DPX, camera raw | Not supported |
+| OpenEXR (`.exr`) — half / float | Supported; values clipped to 0–1 (see below) |
+| DPX (`.dpx`), Cineon (`.cin`) — 8/10/12/16-bit | Supported |
+| TIFF (`.tif`) — 8/16-bit integer, 32-bit float | Supported |
+| PNG — 8/16-bit | Supported |
+| JPEG, JPEG 2000, JPEG XL, WebP, BMP, TGA, PSD, HDR, PNM, SGI, … | Supported |
+| Camera raw | Not supported |
 
-For best results, use 8-bit RGB images that are pixel-aligned and in the same
-color space.
+Integer formats are normalized to 0–1 (e.g. 10-bit DPX code value 1023 → 1.0).
+Float formats such as EXR are read as-is and then **clipped to 0–1**, since the
+ASC CDL clamps its working range. Scene-linear EXRs with highlights above 1.0
+will lose that detail — for best results, convert both images to the same
+log or display-referred encoding the CDL will be applied in.
+
+Both images must be pixel-aligned and in the same color space. Only the first
+subimage / part of multi-part files is read.
 
 ### Output
 
