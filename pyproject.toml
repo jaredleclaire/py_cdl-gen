@@ -8,6 +8,7 @@ dependencies = [
     "numpy>=1.24",
     "openimageio>=3.2.1.3",
     "scipy>=1.10",
+    "alive-progress>=3.3.0",
 ]
 
 [project.scripts]

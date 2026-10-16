@@ -60,6 +60,13 @@ Arguments:
 - `--id` — the `ColorCorrection` id attribute (default: `cc001`)
 - `--max-samples` — max pixels sampled per channel for curve fitting (default: 200000)
 - `--iterations` — number of SOP/Saturation refinement passes (default: 8)
+- `--no-progress` — hide the progress bars
+
+While running, progress bars (via
+[alive-progress](https://github.com/rsalmei/alive-progress)) show image
+loading and each fitting pass. They are written to stderr, so the printed
+results on stdout stay clean for scripting; when stderr isn't a terminal the
+bars are reduced to a final summary line.
 
 Example output (`.cc`):
 
