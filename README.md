@@ -61,6 +61,13 @@ Arguments:
 - `--max-samples` — max pixels sampled per channel for curve fitting (default: 200000)
 - `--iterations` — number of SOP/Saturation refinement passes (default: 8)
 - `--no-progress` — hide the progress bars
+- `--identity` — skip fitting and write an identity (bypass) CDL — slope 1,
+  offset 0, power 1, saturation 1 — for troubleshooting a pipeline. `source`
+  and `target` are omitted in this mode:
+
+  ```bash
+  uv run cdl-gen --identity -o identity.cc
+  ```
 
 While running, progress bars (via
 [alive-progress](https://github.com/rsalmei/alive-progress)) show image

@@ -7,7 +7,7 @@ from pathlib import Path
 
 from alive_progress import alive_bar
 
-from .cdl_writer import write_cc, write_cdl
+from .cdl_writer import identity_values, write_cc, write_cdl
 from .fitting import fit_cdl
 from .io_utils import load_image
 
@@ -20,8 +20,12 @@ def main(argv: list[str] | None = None) -> int:
             "images that share the same content but different color grading."
         ),
     )
-    parser.add_argument("source", help="Path to the source (ungraded) reference image")
-    parser.add_argument("target", help="Path to the target (graded) reference image")
+    parser.add_argument(
+        "source", nargs="?", help="Path to the source (ungraded) reference image",
+    )
+    parser.add_argument(
+        "target", nargs="?", help="Path to the target (graded) reference image",
+    )
     parser.add_argument(
         "-o", "--output", default="output.cc",
         help="Output CDL file path (.cc or .cdl). Default: output.cc",
@@ -42,7 +46,21 @@ def main(argv: list[str] | None = None) -> int:
         "--no-progress", action="store_true",
         help="Disable progress bars",
     )
+    parser.add_argument(
+        "--identity", action="store_true",
+        help=(
+            "Skip fitting and write an identity (bypass) CDL with default values "
+            "for troubleshooting; source and target are not needed"
+        ),
+    )
     args = parser.parse_args(argv)
+
+    if args.identity:
+        if args.source or args.target:
+            parser.error("source and target are not used with --identity")
+        return _write_and_report(args.output, *identity_values(), cc_id=args.cc_id)
+    if not (args.source and args.target):
+        parser.error("source and target are required unless --identity is given")
 
     bar_opts = dict(
         file=sys.stderr, disable=args.no_progress, enrich_print=False, title_length=14,
@@ -74,11 +92,17 @@ def main(argv: list[str] | None = None) -> int:
             iterations=args.iterations, on_iteration=on_iteration,
         )
 
-    out_path = Path(args.output)
+    return _write_and_report(
+        args.output, slope, offset, power, saturation, cc_id=args.cc_id,
+    )
+
+
+def _write_and_report(output, slope, offset, power, saturation, cc_id: str) -> int:
+    out_path = Path(output)
     if out_path.suffix.lower() == ".cdl":
-        write_cdl(out_path, slope, offset, power, saturation, cc_id=args.cc_id)
+        write_cdl(out_path, slope, offset, power, saturation, cc_id=cc_id)
     else:
-        write_cc(out_path, slope, offset, power, saturation, cc_id=args.cc_id)
+        write_cc(out_path, slope, offset, power, saturation, cc_id=cc_id)
 
     print(f"Slope:      {slope}")
     print(f"Offset:     {offset}")

@@ -36,3 +36,28 @@ def test_cli_writes_cc_and_keeps_stdout_clean(image_pair, tmp_path, capsys, extr
     assert "Loading images" not in stdout
     assert "Fitting CDL" not in stdout
     assert "Saturation:" in stdout
+
+
+@pytest.mark.parametrize("name", ["identity.cc", "identity.cdl"])
+def test_cli_identity_writes_bypass_values(tmp_path, name):
+    out = tmp_path / name
+
+    assert main(["--identity", "-o", str(out), "--id", "bypass"]) == 0
+
+    text = out.read_text()
+    assert 'id="bypass"' in text
+    assert "<Slope>1.000000 1.000000 1.000000</Slope>" in text
+    assert "<Offset>0.000000 0.000000 0.000000</Offset>" in text
+    assert "<Power>1.000000 1.000000 1.000000</Power>" in text
+    assert "<Saturation>1.000000</Saturation>" in text
+
+
+def test_cli_requires_images_without_identity():
+    with pytest.raises(SystemExit):
+        main([])
+
+
+def test_cli_identity_rejects_images(image_pair):
+    src, tgt = image_pair
+    with pytest.raises(SystemExit):
+        main(["--identity", str(src), str(tgt)])

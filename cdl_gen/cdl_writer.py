@@ -7,6 +7,11 @@ from xml.dom import minidom
 import numpy as np
 
 
+def identity_values() -> tuple[np.ndarray, np.ndarray, np.ndarray, float]:
+    """Return the no-op CDL: slope 1, offset 0, power 1, saturation 1."""
+    return np.ones(3), np.zeros(3), np.ones(3), 1.0
+
+
 def _fmt_vec3(values: np.ndarray) -> str:
     return " ".join(f"{v:.6f}" for v in values)
 
